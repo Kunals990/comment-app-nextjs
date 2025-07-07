@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@prisma/client": "^6.11.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/morgan": "^1.9.10",
@@ -10,6 +11,7 @@
     "morgan": "^1.10.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "prisma": "^6.11.1"
   }
 }
