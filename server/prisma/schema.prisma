@@ -9,21 +9,29 @@ datasource db {
 }
 
 model User {
-  id       Int       @id @default(autoincrement())
-  email    String    @unique
-  name     String?
-  comments Comment[] 
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String
+  name      String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  comments  Comment[] 
 }
 
 model Comment {
   id              Int       @id @default(autoincrement())
   content         String
-  userId          Int
-  user            User      @relation(fields: [userId], references: [id])
-  parentCommentId Int?      
-  parentComment   Comment?  @relation("CommentReplies", fields: [parentCommentId], references: [id])
-  replies         Comment[] @relation("CommentReplies") 
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
-  deletedAt       DateTime? // Optional: soft delete field
+  userId          Int
+  parentCommentId Int?
+
+  // Relations
+  user            User      @relation(fields: [userId], references: [id])
+  parentComment   Comment?  @relation("CommentReplies", fields: [parentCommentId], references: [id])
+  replies         Comment[] @relation("CommentReplies")
+
+  isDeleted       Boolean   @default(false)
+  deletedAt       DateTime? // For 15-min undo
 }

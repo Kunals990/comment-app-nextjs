@@ -1,5 +1,46 @@
-node_modules
-# Keep environment variables out of version control
-.env
+# Node modules
+node_modules/
 
-/src/generated/prisma
+# Build output
+dist/
+build/
+
+# Environment variables
+.env
+.env.*.local
+
+# Prisma generated client
+/src/generated/prisma/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Optional: VSCode settings (if not team-shared)
+.vscode/
+
+# Docker
+docker-compose.override.yml
+*.local.yml
+
+# Optional: coverage reports (if you run tests with coverage)
+coverage/
+*.lcov
+
+# Prisma files
+prisma/dev.db
+prisma/migrations/
+
+# Optional: IDE specific
+.idea/
+*.swp
+*.swo
+*.bak
+*.tmp
+*.log
