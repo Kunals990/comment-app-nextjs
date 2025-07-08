@@ -1,9 +1,8 @@
 import { IsNotEmpty, IsOptional, IsString, IsNumber } from 'class-validator';
 
 export class CreateCommentDto {
-  @IsString()
-  @IsNotEmpty()
-  content!: string;
+  @IsNotEmpty({ message: 'Comment content cannot be empty' })
+  content: string;
 
   @IsOptional()
   @IsNumber()
