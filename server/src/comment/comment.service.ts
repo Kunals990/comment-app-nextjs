@@ -7,28 +7,47 @@ export class CommentService {
   constructor(private prisma: PrismaService) {}
 
   async create(userId: number, dto: CreateCommentDto) {
-    // If it's a reply, verify the parent comment exists
-    if (dto.parentCommentId) {
-      const parent = await this.prisma.comment.findUnique({
-        where: { id: dto.parentCommentId },
-      });
+  let recipientId: number | null = null;
 
-      if (!parent) {
-        throw new NotFoundException('Parent comment not found');
-      }
+  if (dto.parentCommentId) {
+    const parent = await this.prisma.comment.findUnique({
+      where: { id: dto.parentCommentId },
+    });
+
+    if (!parent) {
+      throw new NotFoundException('Parent comment not found');
     }
 
-    // Create the comment
-    const comment = await this.prisma.comment.create({
+    // Only notify if user is replying to someone else
+    if (parent.userId !== userId) {
+      recipientId = parent.userId;
+    }
+  }
+
+  // Create the comment first
+  const comment = await this.prisma.comment.create({
+    data: {
+      content: dto.content,
+      userId,
+      parentCommentId: dto.parentCommentId || null,
+    },
+  });
+
+  // Create the notification if it's a reply to another user's comment
+  if (recipientId) {
+    await this.prisma.notification.create({
       data: {
-        content: dto.content,
-        userId,
-        parentCommentId: dto.parentCommentId || null,
+        recipientId,
+        commentId: comment.id,
       },
     });
 
-    return comment;
+    console.log(`🔔 Notification created for userId: ${recipientId}`);
   }
+
+  return comment;
+}
+
 
   async getAll() {
   return this.prisma.comment.findMany({

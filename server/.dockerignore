@@ -1,0 +1,16 @@
+# Ignore node_modules (we install fresh inside Docker)
+node_modules
+
+# Ignore build artifacts
+dist
+
+# Ignore environment files
+.env
+
+# Ignore editor/OS junk
+.DS_Store
+*.log
+
+# Ignore Prisma artifacts (optional if generated locally)
+prisma/dev.db
+prisma/dev.db-journal
