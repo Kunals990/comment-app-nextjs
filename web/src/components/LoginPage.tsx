@@ -6,13 +6,11 @@ import { login } from '@/lib/auth';
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('');
 
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
 
      try {
         await login({ email, password });
@@ -89,7 +87,7 @@ export default function LoginPage() {
               onClick={handleSignup}
               className="group relative w-full flex justify-center py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
-              Don't have an account? Sign up
+              Don&apos;t have an account? Sign up
             </button>
           </div>
         </form>

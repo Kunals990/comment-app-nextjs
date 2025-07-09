@@ -25,7 +25,6 @@ export default function Navbar() {
   const loadNotifications = async () => {
     try {
       const data = await fetchNotifications();
-      console.log(data);
       setNotifications(data);
     } catch {
       setNotifications([]);
@@ -109,7 +108,7 @@ useEffect(() => {
                           }`}
                           onClick={() => handleMarkAsRead(notif.id)}
                         >
-                          Reply to your comment: "{notif.comment.content}" from {notif.comment.user.name}
+                          Reply to your comment: &quot;{notif.comment.content}&quot; from {notif.comment.user.name}
                         </li>
                       ))}
                     </ul>

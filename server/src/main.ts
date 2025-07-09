@@ -17,7 +17,12 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: 'http://localhost:3000',
+    origin: [
+    'http://localhost:3000',  
+    'http://192.168.1.4:3000',            
+    'https://comments.kunalsable.com/',      
+    'https://comments-99.vercel.app',   
+  ],
     credentials: true,
   });
 

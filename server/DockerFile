@@ -1,24 +1,39 @@
-# Use an official lightweight Node image
-FROM node:18-alpine
+# ---------- Stage 1: Build ----------
+FROM node:18-alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Copy package.json and install deps
+# Copy and install dependencies
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
-# Copy source files
+# Copy all source files
 COPY . .
 
-# Build Prisma Client
+# Generate Prisma Client
 RUN npx prisma generate
 
-# Build the app
+# Build the NestJS app
 RUN npm run build
 
-# Expose port
-EXPOSE 3000
 
-# Start app
-CMD ["npm", "run", "start:prod"]
+# ---------- Stage 2: Production ----------
+FROM node:18-alpine AS production
+
+WORKDIR /app
+
+# Install only production dependencies
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+# Copy the compiled app and Prisma client
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/prisma ./prisma
+
+
+# Expose the app port
+EXPOSE 5000
+
+# Start the NestJS app
+CMD ["node", "dist/main"]

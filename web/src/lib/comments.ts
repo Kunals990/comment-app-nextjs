@@ -98,14 +98,9 @@ export async function logoutUser() {
   if (!res.ok) throw new Error('Logout failed');
 }
 
-export async function fetchPaginatedComments(page = 1, limit = 10) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/comments?page=${page}&limit=${limit}`, {
-    credentials:'include',
-  });
-
-  if (!res.ok) throw new Error('Failed to fetch comments');
-
-  return res.json();
+export async function fetchPaginatedComments(page: number) {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/comments?page=${page}&limit=10`);
+  const data = await res.json();
+  return data; 
 }
-
 

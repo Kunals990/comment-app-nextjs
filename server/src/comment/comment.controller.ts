@@ -25,9 +25,28 @@ export class CommentController {
   }
 
   @Get()
-  async getAll() {
+  async getComments(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string
+  ) {
+    const pageNumber = parseInt(page || '', 10);
+    const limitNumber = parseInt(limit || '', 10);
+
+    const isPaginated = !isNaN(pageNumber) && !isNaN(limitNumber);
+
+    if (isPaginated) {
+      const result = await this.commentService.getPaginated(pageNumber, limitNumber);
+      return {
+        comments: result.comments,
+        total: result.total,
+        page: result.page,
+        totalPages: result.totalPages,
+      };
+    }
+
     return this.commentService.getAll();
   }
+
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
@@ -47,13 +66,6 @@ export class CommentController {
     return this.commentService.restoreComment(req.user.userId, Number(id));
   }
 
-
-  @Get()
-  getPaginatedComments(@Query('page') page: string, @Query('limit') limit: string) {
-    const pageNumber = parseInt(page) || 1;
-    const limitNumber = parseInt(limit) || 10;
-    return this.commentService.getPaginated(pageNumber, limitNumber);
-  }
 }
 
 

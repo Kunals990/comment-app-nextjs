@@ -50,6 +50,7 @@ export class CommentService {
 
 
 async getAll() {
+  console.log("yes");
   const allComments = await this.prisma.comment.findMany({
     include: {
       user: {
@@ -64,54 +65,41 @@ async getAll() {
   return tree;
 }
 
-private buildCommentTreeWithContext(allComments: any[], visibleComments: any[]) {
-  const allMap = new Map<number, any>();
-  const visibleMap = new Map<number, any>();
-  const roots: any[] = [];
+  private buildCommentTreeWithContext(allComments: any[], visibleRoots: any[]) {
+    const commentMap = new Map<number, any>();
 
-  // Build map of all comments (for reference)
-  allComments.forEach(comment => {
-    allMap.set(comment.id, comment);
-  });
+    allComments.forEach(comment => {
+      commentMap.set(comment.id, { ...comment, replies: [] });
+    });
 
-  // Initialize visible comments with empty replies - CREATE NEW OBJECTS
-  visibleComments.forEach(comment => {
-    const commentCopy = { ...comment, replies: [] };
-    visibleMap.set(comment.id, commentCopy);
-  });
 
-  // Build tree structure
-  visibleComments.forEach(comment => {
-    const commentInMap = visibleMap.get(comment.id);
-    
-    if (comment.parentCommentId) {
-      // Check if parent exists in visible comments
-      const visibleParent = visibleMap.get(comment.parentCommentId);
-      if (visibleParent) {
-        visibleParent.replies.push(commentInMap);
-      } else {
-        // Check if parent exists in all comments (might be deleted)
-        const deletedParent = allMap.get(comment.parentCommentId);
-        if (deletedParent && deletedParent.isDeleted) {
-          console.log(`⚠️ Parent ${comment.parentCommentId} is deleted, promoting reply ${comment.id} to root`);
-        } else {
-          console.warn(`❌ Parent ${comment.parentCommentId} not found for comment ${comment.id}`);
+    commentMap.forEach(comment => {
+      if (comment.parentCommentId) {
+        const parent = commentMap.get(comment.parentCommentId);
+        if (parent) {
+          parent.replies.push(comment);
         }
-        // Treat as root comment
-        roots.push(commentInMap);
       }
-    } else {
-      roots.push(commentInMap);
-    }
-  });
+    });
 
-  return roots;
-}
 
-private countReplies(comment: any): number {
-  if (!comment.replies || comment.replies.length === 0) return 0;
-  return comment.replies.length + comment.replies.reduce((sum: number, reply: any) => sum + this.countReplies(reply), 0);
-}
+    const visibleRootIds = new Set(visibleRoots.map(c => c.id));
+    const roots: any[] = [];
+
+    commentMap.forEach(comment => {
+      if (!comment.parentCommentId && visibleRootIds.has(comment.id)) {
+        roots.push(comment);
+      }
+    });
+
+    return roots;
+  }
+
+
+  private countReplies(comment: any): number {
+    if (!comment.replies || comment.replies.length === 0) return 0;
+    return comment.replies.length + comment.replies.reduce((sum: number, reply: any) => sum + this.countReplies(reply), 0);
+  }
 
 
   async editComment(userId: number, commentId: number, content: string) {
@@ -174,46 +162,30 @@ private countReplies(comment: any): number {
     });
   }
 
-  // comment.service.ts
-
-async getPaginated(page: number, limit: number) {
-  const skip = (page - 1) * limit;
-
-  const [comments, total] = await Promise.all([
-    this.prisma.comment.findMany({
-      where: { parentCommentId: null, isDeleted: false },
-      skip,
-      take: limit,
-      orderBy: { createdAt: 'desc' },
+  async getPaginated(page: number, limit: number) {
+    const skip = (page - 1) * limit;
+    const allComments = await this.prisma.comment.findMany({
       include: {
         user: { select: { id: true, name: true, email: true } },
-        replies: {
-          where: { isDeleted: false },
-          include: {
-            user: { select: { id: true, name: true, email: true } },
-            replies: {
-              where: { isDeleted: false },
-              include: {
-                user: { select: { id: true, name: true, email: true } },
-                replies: true, 
-              },
-            },
-          },
-        },
       },
-    }),
-    this.prisma.comment.count({
-      where: { parentCommentId: null, isDeleted: false },
-    }),
-  ]);
+      orderBy: { createdAt: 'desc' }, 
+    });
 
-  return {
-    comments,
-    total,
-    page,
-    totalPages: Math.ceil(total / limit),
-  };
-}
+    const rootComments = allComments.filter(c => c.parentCommentId === null);
+    const paginatedRoots = rootComments.slice(skip, skip + limit);
+
+    const tree = this.buildCommentTreeWithContext(allComments, paginatedRoots);
+
+    const totalPages = Math.ceil(rootComments.length / limit);
+
+    return {
+      comments: tree,
+      total: rootComments.length,
+      page,
+      totalPages,
+    };
+  }
+
 
 
 }
