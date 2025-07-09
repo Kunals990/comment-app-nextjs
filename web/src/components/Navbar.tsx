@@ -35,6 +35,7 @@ export default function Navbar() {
     setIsRefreshing(true);
     await loadNotifications();
     setIsRefreshing(false);
+    window.location.reload();
   };
 
   const handleLogout = async () => {
