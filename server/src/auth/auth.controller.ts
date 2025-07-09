@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Req, UseGuards, Res } from '@nestjs/common';
+import { Controller, Post, Body, Get, Req, UseGuards, Res, Options, HttpCode } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -16,6 +16,12 @@ interface AuthRequest extends Request {
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
+
+  @Options('register')
+  @HttpCode(200)
+  preflightRegister() {
+    // Empty method to handle preflight
+  }
 
   @Post('register')
   register(@Body() dto: RegisterDto) {
