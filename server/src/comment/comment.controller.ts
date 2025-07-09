@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -45,6 +45,14 @@ export class CommentController {
   @Patch(':id/restore')
   restore(@Req() req: AuthRequest, @Param('id') id: string) {
     return this.commentService.restoreComment(req.user.userId, Number(id));
+  }
+
+
+  @Get()
+  getPaginatedComments(@Query('page') page: string, @Query('limit') limit: string) {
+    const pageNumber = parseInt(page) || 1;
+    const limitNumber = parseInt(limit) || 10;
+    return this.commentService.getPaginated(pageNumber, limitNumber);
   }
 }
 

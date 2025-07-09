@@ -1,9 +1,10 @@
 // server/src/auth/auth.service.ts
 
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, Res } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service'; // we'll create this
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { Response } from 'express';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 
@@ -38,7 +39,7 @@ export class AuthService {
   }
 
   // Login user
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto,@Res({ passthrough: true })res:Response) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -50,10 +51,14 @@ export class AuthService {
     const payload = { sub: user.id, email: user.email };
     const token = await this.jwtService.signAsync(payload);
 
-    return {
-      access_token: token,
-      user: { id: user.id, email: user.email, name: user.name },
-    };
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // only https in production
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    return { message: 'Login successful' };
   }
 
   async getUserById(userId: number) {

@@ -1,9 +1,10 @@
-import { Controller, Post, Body, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, Req, UseGuards, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { Request } from 'express';
+import { Response } from 'express';
 
 interface AuthRequest extends Request {
   user: {
@@ -22,8 +23,15 @@ export class AuthController {
   }
 
   @Post('login')
-  login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
+    return this.authService.login(dto,res);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie('token');
+    return { message: 'Logged out successfully' };
   }
 
   // ✅ PROTECTED route
